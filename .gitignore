@@ -1,3 +1,4 @@
 notes.txt
 backend/.env
 backend/config
+backend/node_modules
