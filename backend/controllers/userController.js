@@ -3,35 +3,43 @@ const User = require("../models/userModel");
 const passwordSchema = require("../passwordValidation")
 const bcrypt = require("bcrypt")
 
+
 // desc Create User
 // @route Post /api/user
 // access public 
 const createUser = asyncHandler(async (req, res) => {
-    // Gets the user information from the requiest
+    // Gets the user information from the request
     const { userName, email, password } = req.body
-    
+
     // Verifies all the information is present
-    if (!userName || !email || !password){
+    if (!userName || !email || !password) {
         res.status(400);
         throw new Error("All fields are mandatory!")
     }
 
     // Checks if the email is available
-    const availableEmail = await User.findOne({email});
-    const availableUser = await User.findOne({userName})
+    const availableEmail = await User.findOne({ email });
+    const availableUser = await User.findOne({ userName })
 
-    if(availableUser){
+    if (availableUser) {
         res.status(400);
         throw new Error("Username already in use");
-    }if (availableEmail) {
+    } if (availableEmail) {
         res.status(400);
         throw new Error("Email already in use");
-    } 
+    }
 
+    // Should the password validation should be on a different file or a function? 
     const validPassword = passwordSchema.validate(password);
-    if(!validPassword){
+    if (!validPassword) {
         res.status(400)
-        throw new Error("Invalid Password:")
+        throw new Error(`Invalid Password. Please ensure that it meets the following criteria: Minimum length of 8 characters
+        At least one uppercase letter
+        At least one lowercase letter
+        At least one digit
+        No spaces allowed
+        At least one special character
+        Must not be one of the commonly used passwords.`)
     }
 
     //Hashes password
@@ -42,9 +50,9 @@ const createUser = asyncHandler(async (req, res) => {
         password: hashedPassword
     })
 
-    if(user){
-        res.status(201).json({_id: user.id, email: user.email})
-    }else{
+    if (user) {
+        res.status(201).json({ _id: user.id, email: user.email })
+    } else {
         res.status(400);
         throw new Error("User data is not valid")
     }
@@ -69,6 +77,8 @@ const deleteUser = asyncHandler(async (req, res) => {
 const getUser = asyncHandler(async (req, res) => {
 
 });
+
+
 
 
 module.exports = { createUser, createLogin, getUser }
