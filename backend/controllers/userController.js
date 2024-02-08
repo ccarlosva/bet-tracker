@@ -1,7 +1,8 @@
-const asyncHandler = require("express-async-handler")
+const asyncHandler = require("express-async-handler");
 const User = require("../models/userModel");
-const passwordSchema = require("../passwordValidation")
-const bcrypt = require("bcrypt")
+const passwordSchema = require("../passwordValidation");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken")
 
 
 // desc Create User
@@ -29,8 +30,8 @@ const createUser = asyncHandler(async (req, res) => {
         throw new Error("Email already in use");
     }
 
-    // Should the password validation should be on a different file or a function? 
-    const validPassword = passwordSchema.validate(password);
+    // Should the password validation should be on a different file or a function? ??
+    const validPassword = await passwordSchema.validate(password);
     if (!validPassword) {
         res.status(400)
         throw new Error(`Invalid Password. Please ensure that it meets the following criteria: Minimum length of 8 characters
@@ -44,6 +45,7 @@ const createUser = asyncHandler(async (req, res) => {
 
     //Hashes password
     const hashedPassword = await bcrypt.hash(password, 10);
+    // Creates user on database
     const user = await User.create({
         userName,
         email,
@@ -62,7 +64,28 @@ const createUser = asyncHandler(async (req, res) => {
 // @route Post /api/user
 // access public 
 const createLogin = asyncHandler(async (req, res) => {
-    res.json({ message: "Hello from Login" });
+    const { email, password } = req.body;
+    if (!email || !password) {
+        res.status(400);
+        throw new Error("All fields are mandatory!")
+    }
+    const user = await User.findOne({ email })
+
+    if (user && (await bcrypt.compare(password, user.password))) {
+        accessToken = jwt.sign({
+            user: {
+                userName: user.userName,
+                email: user.email,
+                id: user.id
+            }
+        }, process.env.ACCESS_TOKEN_SECRET,
+            { expiresIn: "20m" });
+        res.status(200).json({ accessToken });
+        console.log("login Successful");
+    } else {
+        res.status(401);
+        throw new Error("Incorrect Credentials");
+    }
 });
 
 const updateUser = asyncHandler(async (req, res) => {
