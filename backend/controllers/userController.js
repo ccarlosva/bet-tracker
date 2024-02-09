@@ -11,7 +11,6 @@ const jwt = require("jsonwebtoken")
 const createUser = asyncHandler(async (req, res) => {
     // Gets the user information from the request
     const { userName, email, password } = req.body
-
     // Verifies all the information is present
     if (!userName || !email || !password) {
         res.status(400);
@@ -85,11 +84,12 @@ const createLogin = asyncHandler(async (req, res) => {
     } else {
         res.status(401);
         throw new Error("Incorrect Credentials");
-    }
+        
+    }    
 });
 
 const updateUser = asyncHandler(async (req, res) => {
-
+    res.status(200).json({message: "Update successful"})
 });
 
 const deleteUser = asyncHandler(async (req, res) => {
@@ -104,4 +104,4 @@ const getUser = asyncHandler(async (req, res) => {
 
 
 
-module.exports = { createUser, createLogin, getUser }
+module.exports = { createUser, createLogin, updateUser }
