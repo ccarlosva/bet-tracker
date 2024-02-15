@@ -1,25 +1,26 @@
 const mongoose = require('mongoose')
 //  Bets schema
 
-const betSchema = new mongoose.Schema ({
-    user_id:{
+const betSchema = new mongoose.Schema({
+    user_id: {
         type: mongoose.Schema.Types.ObjectId,
         required: true,
-        ref:"User"
+        ref: "User"
     },
-    amount:{
+    amount: {
         type: mongoose.Schema.Types.Decimal128,
         default: 10.00
     },
-    won:{
-        type: Boolean,
-        required: [true, "Please indicate if bet was won or lost"],
+    won: {
+        type: String,
+        enum: ['Won', 'Lost', 'Pushed'],
+        required: [true, "Please indicate the bet status"],
     },
-    date:{
+    date: {
         type: Date,
         default: Date.now
     }
 })
 
-const Bet = mongoose.model('Bet',betSchema);
+const Bet = mongoose.model('Bet', betSchema);
 module.exports = Bet

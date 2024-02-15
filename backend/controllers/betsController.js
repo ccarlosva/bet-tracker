@@ -52,12 +52,6 @@ const getBetHistory = asyncHandler(async (req, res) => {
     res.status(200).json(bets)
 });
 
-
-//@desc Get historical balance
-//@route GET /api/contacts/
-//@access private
-
-
 //@desc Post a bet
 //@route POST /api/contacts/
 //@access private
@@ -68,15 +62,22 @@ const createBet = asyncHandler(async (req, res) => {
         throw new Error("All fields are mandatory")
     }
 
-    const bet = await Bet.create({
-        user_id: req.user.id,
-        amount,
-        won
-    })
-    res.status(200).json(bet);
-})
+    if (amount <= 0) {
+        res.status(400);
+        throw new Error('Invalid amount')
+    }
+    
 
+    console.log(amount)
+    // const bet = await Bet.create({
+    //     user_id: req.user.id,
+    //     amount,
+    //     won
+    // });
 
+    res.status(200).json({message:"success!"});
+    // res.status(200).json(bet);
+});
 
 //@desc Update a bet
 //@route PUT /api/contacts/
@@ -108,11 +109,9 @@ const updateBet = asyncHandler(async (req, res) => {
     res.status(200).json(updatedBet)
 });
 
-
 //@desc Delete a bet
 //@route Delete /api/contacts/
 //@access private
-
 const deleteBet = asyncHandler(async (req, res) => {
     if (!idValidation(req.params.id)) {
         res.status(404);
@@ -134,10 +133,8 @@ const deleteBet = asyncHandler(async (req, res) => {
     res.status(200).json({ message: `Bet: ${bet} deleted!` })
 })
 
-
 function idValidation(id) {
     return mongoose.Types.ObjectId.isValid(id)
 }
-
 
 module.exports = { getBalance, addBalance, getBetHistory, createBet, updateBet, deleteBet }
