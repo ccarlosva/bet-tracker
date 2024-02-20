@@ -55,8 +55,8 @@ const getBetHistory = asyncHandler(async (req, res) => {
 //@route POST /api/contacts/
 //@access private
 const createBet = asyncHandler(async (req, res) => {
-  const { amount, won } = req.body;
-  if (!amount || !won) {
+  const { amount, result } = req.body;
+  if (!amount || !result) {
     res.status(400);
     throw new Error("All fields are mandatory");
   }
@@ -68,14 +68,14 @@ const createBet = asyncHandler(async (req, res) => {
 
   // add logic to modify user balance!
 
-  console.log(amount);
   const bet = await Bet.create({
     user_id: req.user.id,
     amount,
-    won,
+    result,
   });
 
   // res.status(200).json({message:"success!"});
+  manageBalance(result, req.user.id, amount);
   res.status(200).json(bet);
 });
 
@@ -132,6 +132,39 @@ const deleteBet = asyncHandler(async (req, res) => {
 
 function idValidation(id) {
   return mongoose.Types.ObjectId.isValid(id);
+}
+
+async function manageBalance(result, id, amount) {
+  switch (result) {
+    case "Won":
+      try {
+        const user = await User.findByIdAndUpdate(
+          { _id: id },
+          { $inc: { balance: amount } },
+          { new: true }
+        );
+      } catch (error) {
+        console.log("Something went wrong");
+      }
+
+      break;
+    case "Lost":
+      try {
+        const user = await User.findByIdAndUpdate(
+          { _id: id },
+          { $inc: { balance: -amount } },
+          { new: true }
+        );
+      } catch (error) {
+        console.log("Something went wrong");
+      }
+      break;
+    case "Pushed":
+      break;
+    default:
+      console.log("Something went wrong");
+      break;
+  }
 }
 
 module.exports = {
