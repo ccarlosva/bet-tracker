@@ -99,6 +99,21 @@ const updateBet = asyncHandler(async (req, res) => {
     throw new Error("Unauthorized");
   }
 
+  const id = req.user.id;
+  const originalResult = bet.result;
+  const originalAmount = bet.amount;
+
+  const updatedResult = req.body.result;
+  const updatedAmount = req.body.amount;
+
+  updateBalance(
+    id,
+    originalResult,
+    originalAmount,
+    updatedResult,
+    updatedAmount
+  );
+
   const updatedBet = await Bet.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
   });
@@ -165,6 +180,65 @@ async function manageBalance(result, id, amount) {
       console.log("Something went wrong");
       break;
   }
+}
+
+async function updateBalance(
+  id,
+  originalResult,
+  originalAmount,
+  updatedResult,
+  updatedAmount
+) {
+  //Step 1 remove original amount from balance
+  if (originalResult === "Won") {
+    const originalBalance = await User.findByIdAndUpdate(
+      { _id: id },
+      { $inc: { balance: -originalAmount } },
+      { new: true }
+    );
+  }
+
+  if (originalResult === "Lost") {
+    const originalBalance = await User.findByIdAndUpdate(
+      { _id: id },
+      { $inc: { balance: originalAmount } },
+      { new: true }
+    );
+  }
+  // Step 2 add or decrement the balance of new bet
+
+  if (originalResult === "Push" && updatedResult === "Won") {
+    const updatedBalance = await User.findByIdAndUpdate(
+      { _id: id },
+      { $inc: { balance: updatedAmount } },
+      { new: true }
+    );
+  }
+
+  if (originalResult === "Push" && updatedResult === "Lost") {
+    const updatedBalance = await User.findByIdAndUpdate(
+      { _id: id },
+      { $inc: { balance: -updatedAmount } },
+      { new: true }
+    );
+  }
+
+  if (updatedResult === "Lost") {
+    const updatedBalance = await User.findByIdAndUpdate(
+      { _id: id },
+      { $inc: { balance: -updatedAmount } },
+      { new: true }
+    );
+  }
+  if (updatedResult === "Won") {
+    const updatedBalance = await User.findByIdAndUpdate(
+      { _id: id },
+      { $inc: { balance: updatedAmount } },
+      { new: true }
+    );
+  }
+
+  // if Push Amount MUST BE 0 (done with UI) ?
 }
 
 module.exports = {

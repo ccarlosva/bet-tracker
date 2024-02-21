@@ -9,7 +9,7 @@ const betSchema = new mongoose.Schema({
   },
   amount: {
     type: mongoose.Schema.Types.Decimal128,
-    default: 10.0,
+    default: 0.0,
   },
   result: {
     type: String,
@@ -18,7 +18,6 @@ const betSchema = new mongoose.Schema({
   },
   description: {
     type: String,
-    maxlength: [10, "Please keep it under 140 characters"],
     required: false,
     default: "",
   },
