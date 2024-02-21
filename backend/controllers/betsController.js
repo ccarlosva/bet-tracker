@@ -75,7 +75,7 @@ const createBet = asyncHandler(async (req, res) => {
   });
 
   // res.status(200).json({message:"success!"});
-  manageBalance(result, req.user.id, amount);
+  await manageBalance(result, req.user.id, amount);
   res.status(200).json(bet);
 });
 
@@ -106,7 +106,7 @@ const updateBet = asyncHandler(async (req, res) => {
   const updatedResult = req.body.result;
   const updatedAmount = req.body.amount;
 
-  updateBalance(
+  await updateBalance(
     id,
     originalResult,
     originalAmount,
@@ -130,7 +130,8 @@ const deleteBet = asyncHandler(async (req, res) => {
     throw new Error("404 Not Found");
   }
   bet = await Bet.findById(req.params.id);
-
+  result = bet.result;
+  amount = bet.amount;
   if (!bet) {
     res.status(404);
     throw new Error("404 Bet not found!");
@@ -141,12 +142,47 @@ const deleteBet = asyncHandler(async (req, res) => {
     throw new Error("Unauthorized");
   }
 
+  await deleteBalance(result, req.user.id, amount);
   await Bet.deleteOne({ _id: req.params.id });
   res.status(200).json({ message: `Bet: ${bet} deleted!` });
 });
 
 function idValidation(id) {
   return mongoose.Types.ObjectId.isValid(id);
+}
+
+async function deleteBalance(result, id, amount) {
+  console.log(result);
+  switch (result) {
+    case "Won":
+      try {
+        const user = await User.findByIdAndUpdate(
+          { _id: id },
+          { $inc: { balance: -amount } },
+          { new: true }
+        );
+      } catch (error) {
+        console.log("Something went wrong");
+      }
+
+      break;
+    case "Lost":
+      try {
+        const user = await User.findByIdAndUpdate(
+          { _id: id },
+          { $inc: { balance: amount } },
+          { new: true }
+        );
+      } catch (error) {
+        console.log("Something went wrong");
+      }
+      break;
+    case "Pushed":
+      break;
+    default:
+      console.log("Something went wrong");
+      break;
+  }
 }
 
 async function manageBalance(result, id, amount) {
